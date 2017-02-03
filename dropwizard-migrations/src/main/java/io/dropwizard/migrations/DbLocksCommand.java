@@ -1,5 +1,6 @@
 package io.dropwizard.migrations;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.Configuration;
 import io.dropwizard.db.DatabaseConfiguration;
 import liquibase.Liquibase;
@@ -7,9 +8,19 @@ import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.Namespace;
 import net.sourceforge.argparse4j.inf.Subparser;
 
+import java.io.PrintStream;
+
 public class DbLocksCommand<T extends Configuration> extends AbstractLiquibaseCommand<T> {
+
+    private PrintStream printStream = System.out;
+
     public DbLocksCommand(DatabaseConfiguration<T> strategy, Class<T> configurationClass, String migrationsFileName) {
         super("locks", "Manage database migration locks", strategy, configurationClass, migrationsFileName);
+    }
+
+    @VisibleForTesting
+    void setPrintStream(PrintStream printStream) {
+        this.printStream = printStream;
     }
 
     @Override
@@ -38,7 +49,7 @@ public class DbLocksCommand<T extends Configuration> extends AbstractLiquibaseCo
         if (!list && !release) {
             throw new IllegalArgumentException("Must specify either --list or --force-release");
         } else if (list) {
-            liquibase.reportLocks(System.out);
+            liquibase.reportLocks(printStream);
         } else {
             liquibase.forceReleaseLocks();
         }
